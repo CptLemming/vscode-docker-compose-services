@@ -2,7 +2,7 @@
   "name": "docker-compose",
   "displayName": "docker-compose",
   "description": "Make docker work for me",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "CptLemming",
   "engines": {
     "vscode": "^1.60.0"
