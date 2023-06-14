@@ -33,12 +33,18 @@
     "commands": [
 			{
         "command": "dockerComposeServices.startService",
-        "title": "Start service"
+        "title": "Compose: Start service"
       },
       {
         "command": "dockerComposeServices.refresh",
-        "title": "Refresh",
+        "title": "Compose: Refresh",
         "icon": "$(refresh)",
+				"when": "false"
+      },
+      {
+        "command": "dockerComposeServices.toggleFavourites",
+        "title": "Compose: Favourites",
+        "icon": "$(star-full)",
 				"when": "false"
       },
       {
@@ -54,6 +60,11 @@
       {
         "command": "dockerComposeServices.killEntry",
         "title": "Stop",
+				"when": "false"
+      },
+      {
+        "command": "dockerComposeServices.toggleFavourite",
+        "title": "Favourite",
 				"when": "false"
       }
     ],
@@ -78,6 +89,11 @@
           "command": "dockerComposeServices.refresh",
           "when": "view == dockerComposeServices",
           "group": "navigation"
+        },
+        {
+          "command": "dockerComposeServices.toggleFavourites",
+          "when": "view == dockerComposeServices",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -92,6 +108,9 @@
         {
           "command": "dockerComposeServices.killEntry",
           "when": "view == dockerComposeServices && viewItem == started"
+        },
+        {
+          "command": "dockerComposeServices.toggleFavourite"
         }
       ]
     }

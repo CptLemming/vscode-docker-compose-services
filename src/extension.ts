@@ -8,24 +8,32 @@ import { load } from 'js-yaml';
 class TreeItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState
+    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+		workspaceState?: vscode.Memento
   ) {
     super(label, collapsibleState);
 		this.description = "Stopped";
 		this.contextValue = "stopped"; // stopped | started
 
-		this.iconPath = new vscode.ThemeIcon('debug-stop', new vscode.ThemeColor('debugIcon.stopForeground'));
+		const key = `fav:${label}`;
+		if (!!workspaceState?.get(key)) {
+			this.iconPath = new vscode.ThemeIcon('star-full', new vscode.ThemeColor('extensionIcon.starForeground'));
+		} else {
+			this.iconPath = new vscode.ThemeIcon('debug-stop', new vscode.ThemeColor('debugIcon.stopForeground'));
+		}
   }
 }
 
 class TreeItemProvider implements vscode.TreeDataProvider<TreeItem> {
-	private composefileLocation: string | null;
+	private composeFileLocation: string | null;
 	private services: null | Record<string, any> = null;
+	private workspaceState?: vscode.Memento;
 	private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
   readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
-	constructor(composefileLocation?: string) {
-		this.composefileLocation = TreeItemProvider.getComposeFile(composefileLocation);
+	constructor(composeFileLocation?: string, workspaceState?: vscode.Memento) {
+		this.composeFileLocation = TreeItemProvider.getComposeFile(composeFileLocation);
+		this.workspaceState = workspaceState;
 		this.loadServices();
 	}
 
@@ -37,15 +45,26 @@ class TreeItemProvider implements vscode.TreeDataProvider<TreeItem> {
     if (element || this.services == null) {
 			return Promise.resolve([]);
     } else {
-      return Promise.resolve(Object.keys(this.services).map(service => new TreeItem(
-				service,
-				vscode.TreeItemCollapsibleState.None
-			)));
+			const shouldFilter = this.workspaceState?.get("fav:global:toggle");
+
+      return Promise.resolve(Object.keys(this.services)
+				.filter(service => {
+					if (!shouldFilter) {
+						return true;
+					}
+
+					const key = `fav:${service}`;
+					return this.workspaceState?.get(key);
+				}).map(service => new TreeItem(
+					service,
+					vscode.TreeItemCollapsibleState.None,
+					this.workspaceState
+				)));
     }
   }
 
-	static getComposeFile(composefileLocation?: string | null): string | null {
-		const composeFile = composefileLocation || "docker-compose.yml";
+	static getComposeFile(composeFileLocation?: string | null): string | null {
+		const composeFile = composeFileLocation || "docker-compose.yml";
 
 		let lookupLocation: string | null = null;
 
@@ -62,9 +81,9 @@ class TreeItemProvider implements vscode.TreeDataProvider<TreeItem> {
 	loadServices() {
 		let doc: null | Record<string, any> = null;
 
-		if (this.composefileLocation) {
+		if (this.composeFileLocation) {
 			try {
-				doc = load(fs.readFileSync(this.composefileLocation, 'utf8')) as any;
+				doc = load(fs.readFileSync(this.composeFileLocation, 'utf8')) as any;
 			} catch (e) {
 				console.error("ERR", e);
 			}
@@ -80,9 +99,9 @@ class TreeItemProvider implements vscode.TreeDataProvider<TreeItem> {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-	const composefileLocation: string | undefined = vscode.workspace.getConfiguration('dockerComposeServices').get("composeLocation");
+	const composeFileLocation: string | undefined = vscode.workspace.getConfiguration('dockerComposeServices').get("composeLocation");
 
-	const treeProvider = new TreeItemProvider(composefileLocation);
+	const treeProvider = new TreeItemProvider(composeFileLocation, context.workspaceState);
 	vscode.window.registerTreeDataProvider(
 		'dockerComposeServices',
 		treeProvider
@@ -98,7 +117,7 @@ export function activate(context: vscode.ExtensionContext) {
 			async () => {
 				treeProvider.refresh();
 		 }
-		)
+		);
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('dockerComposeServices.startEntry', (treeItem: TreeItem) => {
 		vscode.tasks.executeTask(new vscode.Task(
@@ -132,6 +151,16 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('dockerComposeServices.startService', () => {
 		vscode.window.showInformationMessage('Start service');
+	}));
+	context.subscriptions.push(vscode.commands.registerCommand('dockerComposeServices.toggleFavourites', () => {
+		const key = "fav:global:toggle";
+		context.workspaceState.update(key, !context.workspaceState.get(key));
+		treeProvider.refresh();
+	}));
+	context.subscriptions.push(vscode.commands.registerCommand('dockerComposeServices.toggleFavourite', (treeItem: TreeItem) => {
+		const key = `fav:${treeItem.label}`;
+		context.workspaceState.update(key, !context.workspaceState.get(key));
+		treeProvider.refresh();
 	}));
 }
 
