@@ -2,7 +2,7 @@
   "name": "docker-compose",
   "displayName": "docker-compose",
   "description": "Make docker work for me",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "CptLemming",
   "engines": {
     "vscode": "^1.60.0"
@@ -11,7 +11,7 @@
     "Other"
   ],
   "activationEvents": [
-		"onCommand:dockerComposeServices.startService",
+    "onCommand:dockerComposeServices.startService",
     "onView:dockerComposeServices"
   ],
   "repository": {
@@ -24,14 +24,17 @@
       "title": "Docker compose services",
       "properties": {
         "dockerComposeServices.composeLocation": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "default": null,
           "description": "Specifies the relative path for a docker-compose.yml file"
         }
       }
     },
     "commands": [
-			{
+      {
         "command": "dockerComposeServices.startService",
         "title": "Compose: Start service"
       },
@@ -39,33 +42,33 @@
         "command": "dockerComposeServices.refresh",
         "title": "Compose: Refresh",
         "icon": "$(refresh)",
-				"when": "false"
+        "when": "false"
       },
       {
         "command": "dockerComposeServices.toggleFavourites",
         "title": "Compose: Favourites",
         "icon": "$(star-full)",
-				"when": "false"
+        "when": "false"
       },
       {
         "command": "dockerComposeServices.startEntry",
         "title": "Start",
-				"when": "false"
+        "when": "false"
       },
       {
         "command": "dockerComposeServices.stopEntry",
         "title": "Stop",
-				"when": "false"
+        "when": "false"
       },
       {
         "command": "dockerComposeServices.killEntry",
         "title": "Stop",
-				"when": "false"
+        "when": "false"
       },
       {
         "command": "dockerComposeServices.toggleFavourite",
         "title": "Favourite",
-				"when": "false"
+        "when": "false"
       }
     ],
     "views": {
@@ -101,10 +104,10 @@
           "command": "dockerComposeServices.startEntry",
           "when": "view == dockerComposeServices && viewItem == stopped"
         },
-				{
-					"command": "dockerComposeServices.stopEntry",
-					"when": "view == dockerComposeServices && viewItem == started"
-				},
+        {
+          "command": "dockerComposeServices.stopEntry",
+          "when": "view == dockerComposeServices && viewItem == started"
+        },
         {
           "command": "dockerComposeServices.killEntry",
           "when": "view == dockerComposeServices && viewItem == started"
@@ -122,7 +125,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package"
   },
   "devDependencies": {
     "@types/glob": "^7.1.4",
@@ -139,6 +143,7 @@
     "typescript": "^4.4.3"
   },
   "dependencies": {
-    "js-yaml": "^3.14.1"
+    "js-yaml": "^3.14.1",
+    "vsce": "^2.15.0"
   }
 }
