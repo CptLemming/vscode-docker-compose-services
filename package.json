@@ -110,7 +110,8 @@
           "when": "view == dockerComposeServices && viewItem == started"
         },
         {
-          "command": "dockerComposeServices.toggleFavourite"
+          "command": "dockerComposeServices.toggleFavourite",
+          "when": "view == dockerComposeServices"
         }
       ]
     }
